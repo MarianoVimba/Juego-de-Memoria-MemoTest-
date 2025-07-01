@@ -7,8 +7,10 @@ let primeraCarta = null;
 let segundaCarta = null;
 let bloqueo = false; //uso para q no se den 2 clicks rapidos mientras se muestran
 let aciertos = 0;
-let tiempo = 0;
 let intervalo = null;
+let tiempoInicio = null;
+let tiempoFin = null;
+
 
 mezclarCartas(cartasDuplicadas);
 
@@ -20,11 +22,11 @@ cartasDuplicadas.forEach(valor =>{
     carta.style.backgroundImage = `url(${"img/fondo.png"})`;
     
     carta.addEventListener("click",()=>{
-        //cuando haga el primer click q comienza arranca el tiempo
-        iniciarCronometro();
-
+ 
         //para evitar errores si el jugador ya acerto en esa carta q no vuelva a apretar
         if(bloqueo || carta.classList.contains("acertada") || carta === primeraCarta) return;
+
+        if(tiempoInicio === null) tiempoInicio = new Date;
         
         carta.style.backgroundImage = `url(${carta.dataset.valor})`;
         carta.classList.add("darVuelta");
@@ -42,16 +44,18 @@ cartasDuplicadas.forEach(valor =>{
             aciertos++;
             
             if(aciertos === 10){
-                detenerCronometro();
                 mostrarModal();
-                cronometro.innerHTML = `Tiempo: ${tiempo} s`;
+                tiempoFin = new Date();
+                const tiempoTotal = (tiempoFin - tiempoInicio) /1000; //en seg
+                const minutos = Math.floor(tiempoTotal/60);
+                const segundos = Math.floor(tiempoTotal %60);//es el resto de los seg q sobran del min
+                if(minutos == 0){
+                    cronometro.innerHTML = `Tiempo: ${segundos}seg `;
+                }else{
+                    cronometro.innerHTML = `Tiempo:  ${minutos}min  ${segundos}seg `;
+                }
             }
             reiniciarTurno();
-        }else{
-            setTimeout(()=>{
-                cartasIncorrectas();
-                reiniciarTurno();
-            },1000);
         }
     }
     });
@@ -62,20 +66,6 @@ document.getElementById("reiniciar").addEventListener("click",()=>{
         location.reload();
 });
 
-
-
-
-
-
-function iniciarCronometro(){
-    intervalo = setInterval(()=>{
-    tiempo++;
-},1000);
-}
-
-function detenerCronometro(){
-    clearInterval(intervalo);
-}
 
 function cartasIncorrectas(){
     primeraCarta.textContent = "";
